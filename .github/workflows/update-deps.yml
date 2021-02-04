@@ -19,6 +19,14 @@ jobs:
           if [[ -f "./.github/workflows-config.json" ]]; then
             echo "SETTINGS=$( jq .updateDeps './.github/workflows-config.json' )" >> $GITHUB_ENV
           fi
+          
+      - name: Read config 2
+        run: |
+          SETTINGS={}
+          if [[ -f "./.github/workflows-config.json" ]]; then
+            SETTINGS=$( jq .updateDeps './.github/workflows-config.json' )
+          fi
+          echo "Workflow settings: $SETTINGS"
 
       - name: Setup node
         # https://github.com/marketplace/actions/setup-node-js-environment
