@@ -6,7 +6,7 @@ on:
       config:
         description: 'Config'
         required: false
-        default: '{}'
+        default: ''
 
 jobs:
   update:
@@ -16,21 +16,17 @@ jobs:
       matrix:
         deps: [production, dev-only]
 
-    steps:
+    steps:         
       - name: Read config
         run: |
-          echo "SETTINGS={}" >> $GITHUB_ENV
-          if [[ -f "./.github/workflows-config.json" ]]; then
-            echo "SETTINGS=$( jq .updateDeps './.github/workflows-config.json' )" >> $GITHUB_ENV
-          fi
-          
-      - name: Read config 2
-        run: |
-          SETTINGS={}
-          if [[ -f "./.github/workflows-config.json" ]]; then
+          SETTINGS='{}'
+          if [[ ! -z "${{ github.event.inputs.config }}" ]]; then
+            SETTINGS=${{ github.event.inputs.config }}
+          elif [[ -f "./.github/workflows-config.json" ]]; then
             SETTINGS=$( jq .updateDeps './.github/workflows-config.json' )
           fi
           echo "Workflow settings: $SETTINGS"
+          echo "SETTINGS=$SETTINGS" >> $GITHUB_ENV
 
       - name: Setup node
         # https://github.com/marketplace/actions/setup-node-js-environment
@@ -53,7 +49,7 @@ jobs:
             echo "Expected 'GH_BOT_EMAIL' secret variable to be set."
             exit 1
           fi
-          BRANCH_MAIN=$(echo '${{ github.event.inputs.config }}' | jq -r ".branchMain")
+          BRANCH_MAIN=$(echo '${{ env.SETTINGS }}' | jq -r ".branchMain")
           if [[ -z "$BRANCH_MAIN" || "$BRANCH_MAIN" == "null" ]]; then
             # Since 'Fetch changes' step fetches default branch, we just get branch name (which will be default one).
             echo "BRANCH_MAIN=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
