@@ -20,8 +20,8 @@ jobs:
       - name: Read config
         run: |
           SETTINGS='{}'
-          if [[ ! -z "${{ github.event.inputs.config }}" ]]; then
-            SETTINGS="${{ github.event.inputs.config }}"
+          if [[ ! -z '${{ github.event.inputs.config }}' ]]; then
+            SETTINGS='${{ github.event.inputs.config }}'
           elif [[ -f "./.github/workflows-config.json" ]]; then
             SETTINGS=$( jq .updateDeps './.github/workflows-config.json' )
           fi
