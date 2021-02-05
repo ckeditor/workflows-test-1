@@ -1,6 +1,8 @@
 name: Update NPM dependencies
 
 on:
+  schedule:
+    - cron: "0 5 * * 1"
   workflow_dispatch:
     inputs:
       config:
@@ -16,17 +18,17 @@ jobs:
       matrix:
         deps: [production, dev-only]
 
-    steps:         
+    steps:
       - name: Read config
         run: |
-          SETTINGS='{}'
+          CONFIG='{}'
           if [[ ! -z '${{ github.event.inputs.config }}' ]]; then
-            SETTINGS='${{ github.event.inputs.config }}'
+            CONFIG='${{ github.event.inputs.config }}'
           elif [[ -f "./.github/workflows-config.json" ]]; then
-            SETTINGS=$( jq .updateDeps './.github/workflows-config.json' )
+            CONFIG=$( jq .updateDeps './.github/workflows-config.json' )
           fi
-          echo "Workflow settings: $SETTINGS"
-          echo "SETTINGS=$SETTINGS" >> $GITHUB_ENV
+          echo "CONFIG=$CONFIG" >> $GITHUB_ENV
+          echo "Workflow config: $CONFIG"
 
       - name: Setup node
         # https://github.com/marketplace/actions/setup-node-js-environment
@@ -40,7 +42,6 @@ jobs:
 
       - name: Check env variables
         run: |
-          echo 'Workflow settings: ${{ github.event.inputs.config }}'
           if [[ -z "${{ secrets.GH_BOT_USERNAME }}" ]]; then
             echo "Expected 'GH_BOT_USERNAME' secret variable to be set."
             exit 1
@@ -49,13 +50,12 @@ jobs:
             echo "Expected 'GH_BOT_EMAIL' secret variable to be set."
             exit 1
           fi
-          BRANCH_MAIN=$(echo '${{ env.SETTINGS }}' | jq -r ".branchMain")
+          BRANCH_MAIN=$(echo '${{ env.CONFIG }}' | jq -r ".branchMain")
           if [[ -z "$BRANCH_MAIN" || "$BRANCH_MAIN" == "null" ]]; then
             # Since 'Fetch changes' step fetches default branch, we just get branch name (which will be default one).
-            echo "BRANCH_MAIN=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
-          else
-            echo "BRANCH_MAIN=$BRANCH_MAIN" >> $GITHUB_ENV
+            BRANCH_MAIN=$(git rev-parse --abbrev-ref HEAD)
           fi
+          echo "BRANCH_MAIN=$BRANCH_MAIN" >> $GITHUB_ENV
 
       - name: Check if update branch already exists
         run: |
