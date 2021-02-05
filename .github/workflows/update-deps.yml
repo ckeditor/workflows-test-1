@@ -1,8 +1,12 @@
 name: Update NPM dependencies
 
 on:
-  schedule:
-  - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      config:
+        description: 'Config'
+        required: false
+        default: '{}'
 
 jobs:
   update:
@@ -40,7 +44,7 @@ jobs:
 
       - name: Check env variables
         run: |
-          echo "Workflow settings: ${{ env.SETTINGS }}"
+          echo "Workflow settings: ${{ github.event.inputs.config }}"
           if [[ -z "${{ secrets.GH_BOT_USERNAME }}" ]]; then
             echo "Expected 'GH_BOT_USERNAME' secret variable to be set."
             exit 1
@@ -49,7 +53,7 @@ jobs:
             echo "Expected 'GH_BOT_EMAIL' secret variable to be set."
             exit 1
           fi
-          workflowConfig="${{ env.SETTINGS }}"
+          workflowConfig="${{ github.event.inputs.config }}"
           BRANCH_MAIN=$(echo $workflowConfig | jq ".branchMain")
           if [[ -z "$BRANCH_MAIN" ]]; then
             # Since 'Fetch changes' step fetches default branch, we just get branch name (which will be default one).
