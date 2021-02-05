@@ -54,7 +54,7 @@ jobs:
             exit 1
           fi
           BRANCH_MAIN=$(echo '${{ github.event.inputs.config }}' | jq -r ".branchMain")
-          if [[ -z "$BRANCH_MAIN" ]]; then
+          if [[ -z "$BRANCH_MAIN" || "$BRANCH_MAIN" == "null" ]]; then
             # Since 'Fetch changes' step fetches default branch, we just get branch name (which will be default one).
             echo "BRANCH_MAIN=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
           else
